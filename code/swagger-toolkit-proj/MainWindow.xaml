@@ -1,0 +1,57 @@
+﻿<Window x:Class="Swagger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Swagger toolkit" Height="500" Width="800" MinHeight="500" MinWidth="800" ResizeMode="CanResizeWithGrip" Icon="/SwaggerToolkit;component/Resources/icon.png" >
+    <Window.Resources>
+    </Window.Resources>
+    
+    <Grid Margin="15,5,15,5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"></RowDefinition>
+            <RowDefinition Height="80"></RowDefinition>
+            <RowDefinition Height="425*"></RowDefinition>
+            <RowDefinition Height="60"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,5,0,5" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20*"></ColumnDefinition>
+                <ColumnDefinition Width="5"></ColumnDefinition>
+                <ColumnDefinition Width="40*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <ComboBox Name="CmbApiCategory" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14" />
+
+            <ComboBox Name="CmbApiOperation" Grid.Column="2" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14"/>
+            
+        </Grid>
+
+        <TextBox Name="TxtSummary" HorizontalAlignment="Stretch" Margin="0,5,0,5" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="False" FontSize="14" AcceptsReturn="False" VerticalScrollBarVisibility="Auto" GotFocus="TxtSummary_GotFocus" LostFocus="TxtSummary_LostFocus"/>
+
+        <TextBox Name="TxtDescription" HorizontalAlignment="Stretch" Margin="0,5,0,5" Grid.Row="2" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="False" FontSize="14" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" GotFocus="TxtDescription_GotFocus" LostFocus="TxtDescription_LostFocus"/>
+
+        <Grid Grid.Row="3" Margin="0,10,0,15" AllowDrop="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <Button Name="BtnUndoPageEdits" Content="Undo changes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0" Grid.Column="0" FontSize="14" Click="BtnDiscardPageEdits_Click"/>
+
+            <TextBox Name="TxtFile" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" TextWrapping="NoWrap"  VerticalAlignment="Stretch" Grid.Column="1" IsReadOnly="True" FontSize="14" VerticalContentAlignment="Center" AllowDrop="True" PreviewDragEnter="TxtFile_DragEnter" PreviewDragLeave="TxtFile_DragLeave" PreviewDragOver="TxtFile_DragOver" PreviewDrop="TxtFile_Drop">
+                <TextBox.Background>
+                    <SolidColorBrush x:Name="AnimBrush"/>
+                </TextBox.Background>
+            </TextBox>
+
+            <Button x:Name="BtnSave" Content="Save" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" Grid.Column="2" FontSize="14" Click="BtnSave_Click"/>
+        </Grid>
+    </Grid>
+</Window>

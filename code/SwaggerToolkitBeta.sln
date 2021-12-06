@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "InstallerMsix", "msix-installer-proj\InstallerMsix.wapproj", "{9581161D-562F-4212-BF26-E419B2D6F9C4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwaggerToolkit", "swagger-toolkit-proj\SwaggerToolkit.csproj", "{E1746ABC-F28A-41D8-9AB5-02266925E631}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Debug|x64.ActiveCfg = Debug|x64
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Debug|x64.Build.0 = Debug|x64
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Debug|x64.Deploy.0 = Debug|x64
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Release|x64.ActiveCfg = Release|x64
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Release|x64.Build.0 = Release|x64
+		{9581161D-562F-4212-BF26-E419B2D6F9C4}.Release|x64.Deploy.0 = Release|x64
+		{E1746ABC-F28A-41D8-9AB5-02266925E631}.Debug|x64.ActiveCfg = Debug|x64
+		{E1746ABC-F28A-41D8-9AB5-02266925E631}.Debug|x64.Build.0 = Debug|x64
+		{E1746ABC-F28A-41D8-9AB5-02266925E631}.Release|x64.ActiveCfg = Release|x64
+		{E1746ABC-F28A-41D8-9AB5-02266925E631}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5DF2BD3E-29DC-4678-B971-DCD73E0770B1}
+	EndGlobalSection
+EndGlobal
