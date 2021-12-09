@@ -82,7 +82,7 @@
           "Pets"
         ],
         "summary": "Creates pets.",
-        "description": "\n## Operation\r\n\r\nCreates a new pet in the store.  \r\n\r\n## Limitations\r\n\r\n- Duplicates aren't allowed.\r\n- IDs must be unique.\n\n######\n",
+        "description": "\n## Operation\r\n\r\nCreates a new pet entry.\r\n\r\n## Limitations\r\n\r\n- Duplicates aren't allowed.\r\n- IDs must be unique.\n\n######\n",
         "operationId": "addPet",
         "produces": [
           "application/json"

@@ -61,8 +61,4 @@
     <Resource Include="Resources\icon.png" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="MsixVersion.exe" />
-  </Target>
-
 </Project>
