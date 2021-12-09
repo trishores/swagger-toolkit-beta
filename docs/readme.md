@@ -1,6 +1,6 @@
 # Swagger toolkit beta
 
-Coming soon to the Microsoft app store.
+Available (free) in the [Microsoft Store](https://www.microsoft.com/store/apps/9n5vkgq9dvg3).
 
 ## Summary
 
