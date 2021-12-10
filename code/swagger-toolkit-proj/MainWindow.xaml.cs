@@ -413,6 +413,26 @@ namespace Swagger
 
         #endregion
 
+        #region Copy JSON to clipboard
+
+        private void BtnSummary_Click(object sender, RoutedEventArgs e)
+        {
+            string summary = UiSummaryToRaw(TxtSummary.Text).Replace("\n", @"\n"); ;
+            Clipboard.SetText(summary);
+
+            MessageBox.Show("JSON summary copied to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnDescription_Click(object sender, RoutedEventArgs e)
+        {
+            string description = UiDescriptionToRaw(TxtDescription.Text).Replace("\r", "").Replace("\n", @"\n");
+            Clipboard.SetText(description);
+
+            MessageBox.Show("JSON description copied to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        #endregion
+
         #region Text transforms
 
         private static string RawSummaryToUi(string rawSummary)

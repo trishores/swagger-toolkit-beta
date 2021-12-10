@@ -1,6 +1,6 @@
 ﻿Field,ID,Type (Type),default,en-us
 Description,2,Text,,An open source toolkit for editing JSON swagger files.
-ReleaseNotes,3,Text,,
+ReleaseNotes,3,Text,,Converts Markdown summary or description to JSON without saving to swagger file.
 Title,4,Text,,Swagger toolkit beta
 ShortTitle,5,Text,,
 SortTitle,6,Text,,
@@ -9,7 +9,7 @@ ShortDescription,8,Text,,
 DevStudio,9,Text,,trishores@gmail.com
 CopyrightTrademarkInformation,12,Text,,
 AdditionalLicenseTerms,13,Text,,MIT License
-DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9N5VKGQ9DVG3/submissions/1152921505694255608/listings/1152922700008682568/listingassets/3051594497068702904
+DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9N5VKGQ9DVG3/submissions/1152921505694274313/listings/1152922700008682568/listingassets/3035109363556403836
 DesktopScreenshot2,101,Relative path (or URL to file in Partner Center),,
 DesktopScreenshot3,102,Relative path (or URL to file in Partner Center),,
 DesktopScreenshot4,103,Relative path (or URL to file in Partner Center),,
@@ -103,8 +103,8 @@ XboxFeaturedPromo1080x1080,610,Relative path (or URL to file in Partner Center),
 OptionalPromo358x358,611,Relative path (or URL to file in Partner Center),,
 OptionalPromo1000x800,612,Relative path (or URL to file in Partner Center),,
 OptionalPromo414x180,613,Relative path (or URL to file in Partner Center),,
-Feature1,700,Text,,Edit the summary and description fields of REST API paths using multiline Markdown.
-Feature2,701,Text,,Apply a consistent JSON document format.
+Feature1,700,Text,,Supports setting the summary and description fields of REST API paths using multiline Markdown.
+Feature2,701,Text,,Applies a consistent JSON document format.
 Feature3,702,Text,,
 Feature4,703,Text,,
 Feature5,704,Text,,

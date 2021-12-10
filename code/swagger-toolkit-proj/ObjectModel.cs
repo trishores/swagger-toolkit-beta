@@ -53,8 +53,8 @@ namespace Swagger
         internal async Task SaveAsync()
         {
             try
-            {    
-                var serializerOptions = new JsonSerializerOptions
+            {
+                JsonSerializerOptions serializerOptions = new()
                 {
                     Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                     WriteIndented = true
@@ -109,7 +109,7 @@ namespace Swagger
             Examples = JsonNode["x-ms-examples"];
             Deprecated = JsonNode["deprecated"];
 
-            var test = JsonNode["description"];
+            JsonNode test = JsonNode["description"];
         }
 
         internal string Key { get; set; }
