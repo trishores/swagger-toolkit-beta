@@ -6,35 +6,40 @@ Available (free) in the [Microsoft Store](https://www.microsoft.com/store/apps/9
 
 An open source toolkit for editing JSON swagger files.
 
-## Features
+## Product features
 
-- Edit the summary and description fields of REST API paths using multiline Markdown.
-- Apply a consistent JSON document format.
+- Supports editing the API path summary/description fields using Markdown.
+- Converts multiline Markdown to singleline Markdown, which is required for insertion into a JSON swagger file.
+- Applies a consistent JSON document format.
+- Uses the Microsoft [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview) library.
+- Optionally, extract the summary/description in JSON format without saving to a swagger file.
+- Supports quick insert of [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) constructs (e.g. Notes, Tips).
 
 ## Upcoming features
 
-- Quick insert for tips, notes, and other Markdown constructs.
-- Configurable character escaping options.
-- Support for editing other swagger fields.
-- Support for running an autorest or other script.
+- Configurable character escaping.
+- Support for editing more swagger fields.
+- Autorest validation.
 
 ## Getting started
 
-1. To get started, drag and drop a JSON swagger file onto the path field. Here's a sample [petstore swagger file](./resources/samples/petstore.json).
+1. To get started, drag and drop a JSON swagger file onto the path textbox. You can test the app using this [sample](./resources/samples/sample-swagger.json) swagger file.
 
     ![Screenshot showing the swagger file drop area.](./resources/screenshots/screenshot-1.png)
 
-2. Choose from the **Select an API category** dropdown (lists swagger [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/)).
+2. Choose from the **Select an API tag** dropdown list. The dropdown contains all [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/) from the swagger file.
 
-3. Choose from the **Select an API operation** dropdown (lists swagger [operationIds](https://swagger.io/docs/specification/paths-and-operations/)).
+3. Choose from the **Select an API operation** dropdown list. The dropdown contains all [operationIds](https://swagger.io/docs/specification/paths-and-operations/) from the swagger file that are relevant to the selected [tag](https://swagger.io/docs/specification/grouping-operations-with-tags/).
 
-4. Edit the summary and/or description fields.
+4. Edit the summary and/or description. You can use the snippet buttons (e.g. **Note**) to add a [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) construct at the current cursor position (only applies to the description textbox). 
 
-    ![Screenshot showing the summary and description field for a REST API path.](./resources/screenshots/screenshot-2.png)
+    ![Screenshot showing the summary and description text entry for a REST API path.](./resources/screenshots/screenshot-2.png)
 
-5. Choose **Undo changes** or **Save** to respectively discard or save your edits for the current API operation. Navigating to a new API operation will discard unsaved edits.
+5. Optionally, select one of the **Get JSON** buttons to convert summary/description content to JSON, and save it in your system clipboard. This option doesn't save changes to the swagger file.
 
-6. Use a diff viewer to double-check your changes.
+6. Choose **Undo changes** or **Save to swagger** to discard or save your edits for the current API page. If you navigate to a new API page without first selecting **Save to swagger**, the app will discard any edits.
+
+Verify your changes in a diff viewer.
 
 ## Manually compile a single file executable
 

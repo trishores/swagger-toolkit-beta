@@ -24,9 +24,13 @@ namespace Swagger
         private static readonly string s_appVersion;
         private ObjectModel _objectModel;
         private static DragDropEffects _dragDropEffects = DragDropEffects.None;
+        private static readonly string _cmbApiTagText = "Select an API tag";
+        private static readonly string _cmbApiOperationText = "Select an API operation";
         private static readonly string _hintSummary = "Path summary";
         private static readonly string _hintDescription = "Path description";
         private static readonly string _hintFile = "Drag and drop a JSON swagger file here";
+        private string SummaryText => string.Equals(TxtSummary.Text, _hintSummary) ? "" : TxtSummary.Text;
+        private string DescriptionText => string.Equals(TxtDescription.Text, _hintDescription) ? "" : TxtDescription.Text;
 
         public MainWindow()
         {
@@ -35,19 +39,19 @@ namespace Swagger
             // Defaults.
             ShowInTaskbar = true;
             Title = $"{s_appDisplayName} v{s_appVersion}";
-            CmbApiCategory.Items.Add("Select an API category");
-            CmbApiCategory.SelectedIndex = 0;
-            CmbApiOperation.Items.Add("Select an API operation");
-            CmbApiOperation.SelectedIndex = 0;
+            CmbApiTags.Items.Add(_cmbApiTagText);
+            CmbApiTags.SelectedIndex = 0;
+            CmbApiOperations.Items.Add(_cmbApiOperationText);
+            CmbApiOperations.SelectedIndex = 0;
             TxtSummary.Text = _hintSummary;
-            TxtSummary.Foreground = Brushes.Gray;
             TxtDescription.Text = _hintDescription;
+            TxtSummary.Foreground = Brushes.Gray;
             TxtDescription.Foreground = Brushes.Gray;
 
             // Events.
             Loaded += MainWindow_Loaded;
-            CmbApiCategory.SelectionChanged += CmbApiCategory_SelectionChanged;
-            CmbApiOperation.SelectionChanged += CmbApiOperation_SelectionChanged;
+            CmbApiTags.SelectionChanged += CmbApiTags_SelectionChanged;
+            CmbApiOperations.SelectionChanged += CmbApiOperations_SelectionChanged;
         }
 
         static MainWindow()
@@ -76,7 +80,7 @@ namespace Swagger
             }
 
             (bool isValidSwagger, err) = await ValidateSwaggerContentAsync(jsonContent);
-            
+
             if (!isValidSwagger)
             {
                 TxtFile.Text = err;
@@ -98,10 +102,13 @@ namespace Swagger
             TxtFile.Clear();
             TxtSummary.Clear();
             TxtDescription.Clear();
-            CmbApiCategory.Items.Clear();
-            CmbApiCategory.Items.Add("Select an API category");
-            CmbApiOperation.Items.Clear();
-            CmbApiOperation.Items.Add("Select an API operation");
+            CmbApiTags.Items.Clear();
+            CmbApiTags.Items.Add(_cmbApiTagText);
+            CmbApiOperations.Items.Clear();
+            CmbApiOperations.Items.Add(_cmbApiOperationText);
+            // Wipe swagger file path.
+            Properties.Settings.Default.SwaggerFilePath = "";
+            Properties.Settings.Default.Save();
 
             // Validate drop file.
             (bool isValidDrop, string filePath, string err) = ValidateDropFileAsync(e);
@@ -137,8 +144,8 @@ namespace Swagger
         private async void TxtFile_Drop(object sender, DragEventArgs e)
         {
             TxtFile.Background = Brushes.White;
-            CmbApiCategory.SelectedIndex = -1;
-            CmbApiOperation.SelectedIndex = -1;
+            CmbApiTags.SelectedIndex = -1;
+            CmbApiOperations.SelectedIndex = -1;
 
             // Validate drop file.
             (bool isValidDrop, string filePath, string err) = ValidateDropFileAsync(e);
@@ -273,10 +280,10 @@ namespace Swagger
             }
 
             // Populate API categories.
-            List<string> ApiCategories = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Select(y => y.ApiCategory).Distinct().OrderBy(x => x).ToList();
-            ApiCategories.ForEach(x => CmbApiCategory.Items.Add(x));
-            CmbApiCategory.SelectedIndex = 0;
-            CmbApiOperation.SelectedIndex = 0;
+            List<string> ApiCategories = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SelectMany(y => y.ApiTag).Distinct().OrderBy(x => x).ToList();
+            ApiCategories.ForEach(x => CmbApiTags.Items.Add(x));
+            CmbApiTags.SelectedIndex = 0;
+            CmbApiOperations.SelectedIndex = 0;
 
             return (true, null);
         }
@@ -285,24 +292,31 @@ namespace Swagger
 
         #region Navigate API
 
-        private void CmbApiCategory_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CmbApiTags_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (CmbApiCategory.SelectedItem == null || CmbApiCategory.SelectedIndex == 0) return;
-            if (_objectModel == null) return;
+            if (_objectModel == null ||
+                CmbApiTags.SelectedItem == null ||
+                CmbApiTags.SelectedIndex == 0)
+            {
+                CmbApiOperations.SelectedIndex = 0;
+                TxtSummary.Clear();
+                TxtDescription.Clear();
+                return;
+            }
 
             // Lock control.
-            CmbApiCategory.IsEditable = false;
+            CmbApiTags.IsEditable = false;
 
             // Populate API names.
-            string apiCategory = CmbApiCategory.SelectedItem.ToString();
-            List<string> apiNames = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory)?.Select(y => y.ApiName)?.Distinct()?.OrderBy(x => x)?.ToList();
-            
-            CmbApiOperation.SelectionChanged -= CmbApiOperation_SelectionChanged;
-            CmbApiOperation.Items.Clear();
-            CmbApiOperation.Items.Add("Select an API operation");
-            apiNames.ForEach(x => CmbApiOperation.Items.Add(x));
-            CmbApiOperation.SelectedIndex = 0;
-            CmbApiOperation.SelectionChanged += CmbApiOperation_SelectionChanged;
+            string apiTag = CmbApiTags.SelectedItem.ToString();
+            string[] apiOperations = GetApiOperationsForTag(apiTag);
+
+            CmbApiOperations.SelectionChanged -= CmbApiOperations_SelectionChanged;
+            CmbApiOperations.Items.Clear();
+            CmbApiOperations.Items.Add(_cmbApiOperationText);
+            apiOperations.ToList().ForEach(x => CmbApiOperations.Items.Add(x));
+            CmbApiOperations.SelectedIndex = 0;
+            CmbApiOperations.SelectionChanged += CmbApiOperations_SelectionChanged;
 
             TxtSummary.Text = _hintSummary;
             TxtSummary.Foreground = Brushes.Gray;
@@ -310,29 +324,79 @@ namespace Swagger
             TxtDescription.Foreground = Brushes.Gray;
         }
 
-        private void CmbApiOperation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CmbApiOperations_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (CmbApiCategory.SelectedItem == null || CmbApiCategory.SelectedIndex == 0) return;
-            if (CmbApiOperation.SelectedItem == null || CmbApiOperation.SelectedIndex == 0) return;
-            if (_objectModel == null) return;
+            if (_objectModel == null ||
+                CmbApiTags.SelectedItem == null ||
+                CmbApiTags.SelectedIndex == 0 ||
+                CmbApiOperations.SelectedItem == null ||
+                CmbApiOperations.SelectedIndex == 0)
+            {
+                TxtSummary.Clear();
+                TxtDescription.Clear();
+                return;
+            }
 
             // Lock control.
-            CmbApiOperation.IsEditable = false;
+            CmbApiOperations.IsEditable = false;
 
-            string apiCategory = CmbApiCategory.SelectedItem.ToString();
-            string apiName = CmbApiOperation.SelectedItem.ToString();
+            string apiTag = CmbApiTags.SelectedItem.ToString();
+            string apiOperation = CmbApiOperations.SelectedItem.ToString();
 
             // Populate summary.
-            string summary = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Summary).SingleOrDefault();
-            if (summary == null) throw new Exception("Summary not found");
-            TxtSummary.Text = RawSummaryToUi(summary);
+            string summary = GetSummary(apiTag, apiOperation);
+            TxtSummary.Text = RawSummaryToUi(summary ?? "");
             TxtSummary.Foreground = Brushes.Black;
 
             // Populate description.
-            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Description).SingleOrDefault();
-            if (description == null) throw new Exception("Description not found");
-            TxtDescription.Text = RawDescriptionToUi(description);
+            string description = GetDescription(apiTag, apiOperation);
+            TxtDescription.Text = RawDescriptionToUi(description ?? "");
             TxtDescription.Foreground = Brushes.Black;
+        }
+
+        private string[] GetApiOperationsForTag(string apiTag)
+        {
+            string[] apiOperations = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiTag.Any(y => string.Equals(y, apiTag) && x.ApiOperation.IsNotEmpty()))?.Select(y => y.ApiOperation)?.Distinct()?.OrderBy(x => x)?.ToArray();
+            return apiOperations;
+        }
+
+        private string GetSummary(string apiTag, string apiOperation)
+        {
+            string summary = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation).Select(y => y.Summary).SingleOrDefault();
+            return summary;
+        }
+
+        private string GetDescription(string apiTag, string apiOperation)
+        {
+            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation).Select(y => y.Description).SingleOrDefault();
+            return description;
+        }
+
+        #endregion
+
+        #region Insert snippet
+
+        private void BtnInsert_Click(object sender, RoutedEventArgs e)
+        {
+            // Insert an alert construct at cursor position in description field.
+            string alertName = ((Button)sender).Name.Replace("Btn", "").ToUpper();
+            string alertText = $"> [!{alertName}]\n> {alertName.ToLower()} text here";
+            int caretIndex = TxtDescription.CaretIndex;
+
+            if (DescriptionText.IsEmpty())
+            {
+                TxtDescription.Text = alertText;
+                TxtDescription.Foreground = Brushes.Black;
+            }
+            else
+            {
+                TxtDescription.Text = TxtDescription.Text.Insert(TxtDescription.CaretIndex, alertText);
+            }
+
+            try { TxtDescription.CaretIndex = caretIndex + alertText.Length; }
+            catch { }
+
+            TxtDescription.Focus();
         }
 
         #endregion
@@ -341,19 +405,19 @@ namespace Swagger
 
         private void BtnDiscardPageEdits_Click(object sender, RoutedEventArgs e)
         {
-            if (CmbApiCategory.SelectedItem == null || CmbApiCategory.SelectedIndex == 0) return;
-            if (CmbApiOperation.SelectedItem == null || CmbApiOperation.SelectedIndex == 0) return;
+            if (CmbApiTags.SelectedItem == null || CmbApiTags.SelectedIndex == 0) return;
+            if (CmbApiOperations.SelectedItem == null || CmbApiOperations.SelectedIndex == 0) return;
             if (_objectModel == null) return;
 
-            string apiCategory = CmbApiCategory.SelectedItem.ToString();
-            string apiName = CmbApiOperation.SelectedItem.ToString();
+            string apiTag = CmbApiTags.SelectedItem.ToString();
+            string apiOperation = CmbApiOperations.SelectedItem.ToString();
 
             // Get object model summary and description.
-            string summary = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Summary).SingleOrDefault();
-            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Description).SingleOrDefault();
+            string summary = GetSummary(apiTag, apiOperation);
+            string description = GetDescription(apiTag, apiOperation);
 
             // Check whether any changes have been made.
-            if (string.Equals(TxtSummary.Text, RawSummaryToUi(summary)) && string.Equals(TxtDescription.Text, RawDescriptionToUi(description)))
+            if (string.Equals(SummaryText, RawSummaryToUi(summary)) && string.Equals(DescriptionText, RawDescriptionToUi(description)))
             {
                 MessageBox.Show("No changes found on page.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -367,7 +431,7 @@ namespace Swagger
             }
 
             // Reset page.
-            CmbApiOperation_SelectionChanged(null, null);
+            CmbApiOperations_SelectionChanged(null, null);
         }
 
         #endregion
@@ -376,36 +440,39 @@ namespace Swagger
 
         private async void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (CmbApiCategory.SelectedItem == null || CmbApiCategory.SelectedIndex == 0) return;
-            if (CmbApiOperation.SelectedItem == null || CmbApiOperation.SelectedIndex == 0) return;
+            if (CmbApiTags.SelectedItem == null || CmbApiTags.SelectedIndex == 0) return;
+            if (CmbApiOperations.SelectedItem == null || CmbApiOperations.SelectedIndex == 0) return;
             if (_objectModel == null) return;
 
-            string apiCategory = CmbApiCategory.SelectedItem.ToString();
-            string apiName = CmbApiOperation.SelectedItem.ToString();
+            string apiTag = CmbApiTags.SelectedItem.ToString();
+            string apiOperation = CmbApiOperations.SelectedItem.ToString();
 
             // Get object model summary and description.
-            string summary = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Summary).SingleOrDefault();
-            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiCategory == apiCategory && x.ApiName == apiName).Select(y => y.Description).SingleOrDefault();
+            string summary = GetSummary(apiTag, apiOperation);
+            string description = GetDescription(apiTag, apiOperation);
 
             // Check whether any changes have been made.
-            //if (string.Equals(UiSummaryToRaw(TxtSummary.Text), summary.Replace("\n", @"\n")) && string.Equals(UiDescriptionToRaw(TxtDescription.Text), description.Replace("\n", @"\n")))
-            if (string.Equals(UiSummaryToRaw(TxtSummary.Text), summary) && string.Equals(UiDescriptionToRaw(TxtDescription.Text), description))
+            if (string.Equals(UiSummaryToRaw(SummaryText), summary) && string.Equals(UiDescriptionToRaw(DescriptionText), description))
             {
-                MessageBox.Show("No changes found on page.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                MessageBoxResult dr = MessageBox.Show("No changes found on page. Save anyway?", s_appDisplayName, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (dr != MessageBoxResult.Yes)
+                {
+                    return;
+                }
             }
-
-            // Prompt user.
-            MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
-            if (dr != MessageBoxResult.OK)
+            else
             {
-                return;
+                MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                if (dr != MessageBoxResult.OK)
+                {
+                    return;
+                }
             }
 
             // Save summary and description to object model.
-            HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiCategory == apiCategory && x.ApiName == apiName);
-            httpMethod.Summary = UiSummaryToRaw(TxtSummary.Text);
-            httpMethod.Description = UiDescriptionToRaw(TxtDescription.Text);
+            HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation);
+            httpMethod.Summary = UiSummaryToRaw(SummaryText);
+            httpMethod.Description = UiDescriptionToRaw(DescriptionText);
 
             // Write to disc.
             await _objectModel.SaveAsync();
@@ -417,18 +484,28 @@ namespace Swagger
 
         private void BtnSummary_Click(object sender, RoutedEventArgs e)
         {
-            string summary = UiSummaryToRaw(TxtSummary.Text).Replace("\n", @"\n"); ;
-            Clipboard.SetText(summary);
+            if (SummaryText.IsEmpty())
+            {
+                MessageBox.Show("No summary to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n"); ;
+            Clipboard.SetText($"\"summary\": \"{summary}\"");
 
-            MessageBox.Show("JSON summary copied to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Copied JSON summary to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnDescription_Click(object sender, RoutedEventArgs e)
         {
-            string description = UiDescriptionToRaw(TxtDescription.Text).Replace("\r", "").Replace("\n", @"\n");
-            Clipboard.SetText(description);
+            if (DescriptionText.IsEmpty())
+            {
+                MessageBox.Show("No description to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            string description = UiDescriptionToRaw(DescriptionText).Replace("\r", "").Replace("\n", @"\n");
+            Clipboard.SetText($"\"description\": \"{description}\"");
 
-            MessageBox.Show("JSON description copied to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Copied JSON description to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion
@@ -450,10 +527,12 @@ namespace Swagger
             return rawDescription.TrimStart(new[] { ' ', '\r', '\n' }).TrimEnd(new[] { ' ', '\r', '\n', '#' });
         }
 
-        private static string UiDescriptionToRaw(string uiDescription)
+        private string UiDescriptionToRaw(string uiDescription)
         {
-            //return @"\n" + uiDescription.Trim(new[] { ' ', '\r', '\n' }).Replace("\n", @"\n") + @"\n\n######\n";
-            return "\n" + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + "\n\n######\n";
+            var preSpacing = string.Equals(_objectModel.Info.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n" : "";
+            var postSpacing = string.Equals(_objectModel.Info.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n\n######\n" : "";
+
+            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
         }
 
         #endregion

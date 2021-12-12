@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="35"></RowDefinition>
             <RowDefinition Height="80"></RowDefinition>
+            <RowDefinition Name="DocsMarkdown" Height="25"></RowDefinition>
             <RowDefinition Height="425*"></RowDefinition>
             <RowDefinition Height="60"></RowDefinition>
         </Grid.RowDefinitions>
@@ -26,36 +27,46 @@
                 <ColumnDefinition Width="40*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
-            <ComboBox Name="CmbApiCategory" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14" />
+            <ComboBox Name="CmbApiTags" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14" />
 
-            <ComboBox Name="CmbApiOperation" Grid.Column="2" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14"/>
-            
+            <ComboBox Name="CmbApiOperations" Grid.Column="2" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" FontSize="14"/>
+
         </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,5,0,0" HorizontalAlignment="Center" >
+
+            <Button Name="BtnNote" Content="Note" ToolTip="Insert at cursor position" Margin="0,0,0,0" Padding="0,0,0,1" VerticalAlignment="Stretch"  Click="BtnInsert_Click" Background="#EFD9FD" Width="70"/>
+            <Button Name="BtnTip" Content="Tip" ToolTip="Insert at cursor position" Margin="5,0,0,0" Padding="0,0,0,1" VerticalAlignment="Stretch"  Click="BtnInsert_Click" Background="#DFF6DD" Width="70"/>
+            <Button Name="BtnImportant" Content="Important" ToolTip="Insert at cursor position" Margin="5,0,0,0" Padding="0,0,0,1" VerticalAlignment="Stretch"  Click="BtnInsert_Click" Background="#D7EAF8" Width="70"/>
+            <Button Name="BtnCaution" Content="Caution" ToolTip="Insert at cursor position" Margin="5,0,0,0" Padding="0,0,0,1" VerticalAlignment="Stretch"  Click="BtnInsert_Click" Background="#FDE7E9" Width="70"/>
+            <Button Name="BtnWarning" Content="Warning" ToolTip="Insert at cursor position" Margin="5,0,0,0" Padding="0,0,0,1" VerticalAlignment="Stretch"  Click="BtnInsert_Click" Background="#FFF4CE" Width="70"/>
+
+        </StackPanel>
 
         <TextBox Name="TxtSummary" HorizontalAlignment="Stretch" Margin="0,5,0,5" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="False" FontSize="14" AcceptsReturn="False" VerticalScrollBarVisibility="Auto" GotFocus="TxtSummary_GotFocus" LostFocus="TxtSummary_LostFocus"/>
 
-        <TextBox Name="TxtDescription" HorizontalAlignment="Stretch" Margin="0,5,0,5" Grid.Row="2" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="False" FontSize="14" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" GotFocus="TxtDescription_GotFocus" LostFocus="TxtDescription_LostFocus"/>
+        <TextBox Name="TxtDescription" HorizontalAlignment="Stretch" Margin="0,5,0,5" Grid.Row="3" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="False" FontSize="14" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" GotFocus="TxtDescription_GotFocus" LostFocus="TxtDescription_LostFocus"/>
 
-        <Button Name="BtnSummary" Content="get json" HorizontalAlignment="Right" Margin="0,5,0,0" Grid.Row="1" VerticalAlignment="Top" Click="BtnSummary_Click"/>
+        <Button Name="BtnSummary" Content="Get JSON" HorizontalAlignment="Right" Margin="0,5,0,5" Padding="3,1,3,1" Grid.Row="1" VerticalAlignment="Bottom" Click="BtnSummary_Click" Background="Ivory" Opacity="1"/>
 
-        <Button Name="BtnDescription" Content="get json" HorizontalAlignment="Right" Margin="0,5,0,0" Grid.Row="2" VerticalAlignment="Top" Click="BtnDescription_Click"/>
+        <Button Name="BtnDescription" Content="Get JSON" HorizontalAlignment="Right" Margin="0,5,0,5" Padding="3,1,3,1" Grid.Row="3" VerticalAlignment="Bottom" Click="BtnDescription_Click" Background="Ivory" Opacity="1"/>
 
-        <Grid Grid.Row="3" Margin="0,10,0,15" AllowDrop="True">
+        <Grid Grid.Row="4" Margin="0,10,0,15" AllowDrop="True">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="130"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="130"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
             <Button Name="BtnUndoPageEdits" Content="Undo changes" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0" Grid.Column="0" FontSize="14" Click="BtnDiscardPageEdits_Click"/>
 
-            <TextBox Name="TxtFile" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" TextWrapping="NoWrap"  VerticalAlignment="Stretch" Grid.Column="1" IsReadOnly="True" FontSize="14" VerticalContentAlignment="Center" AllowDrop="True" PreviewDragEnter="TxtFile_DragEnter" PreviewDragLeave="TxtFile_DragLeave" PreviewDragOver="TxtFile_DragOver" PreviewDrop="TxtFile_Drop">
+            <TextBox Name="TxtFile" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="3" TextWrapping="NoWrap"  VerticalAlignment="Stretch" Grid.Column="1" IsReadOnly="True" FontSize="14" VerticalContentAlignment="Center" AllowDrop="True" PreviewDragEnter="TxtFile_DragEnter" PreviewDragLeave="TxtFile_DragLeave" PreviewDragOver="TxtFile_DragOver" PreviewDrop="TxtFile_Drop">
                 <TextBox.Background>
                     <SolidColorBrush x:Name="AnimBrush"/>
                 </TextBox.Background>
             </TextBox>
 
-            <Button x:Name="BtnSave" Content="Save" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" Grid.Column="2" FontSize="14" Click="BtnSave_Click"/>
+            <Button x:Name="BtnSave" Content="Save to swagger" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" Grid.Column="2" FontSize="14" Click="BtnSave_Click"/>
         </Grid>
         
     </Grid>
