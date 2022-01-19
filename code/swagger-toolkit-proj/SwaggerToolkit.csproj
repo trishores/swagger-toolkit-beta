@@ -9,9 +9,8 @@
     <AssemblyName>SwaggerToolkit</AssemblyName>
     <RootNamespace>Swagger</RootNamespace>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Product>Swagger toolkit beta</Product>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
