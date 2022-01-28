@@ -530,7 +530,7 @@ namespace Swagger
         private string UiDescriptionToRaw(string uiDescription)
         {
             var preSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n" : "";
-            var postSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n\n######\n" : "";
+            var postSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n\n&nbsp;" : "";
 
             return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
         }

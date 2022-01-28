@@ -15,7 +15,7 @@ An open source toolkit for editing JSON swagger files.
 - Optionally, extract the summary/description in JSON format without saving to a swagger file.
 - Supports quick insert of [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) constructs (e.g. Notes, Tips).
 
-## Upcoming features
+## Future features
 
 - Configurable character escaping.
 - Support for editing more swagger fields.
