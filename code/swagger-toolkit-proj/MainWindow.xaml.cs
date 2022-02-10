@@ -376,7 +376,7 @@ namespace Swagger
 
         #region Insert snippet
 
-        private void BtnInsert_Click(object sender, RoutedEventArgs e)
+        private void BtnInsertAlert_Click(object sender, RoutedEventArgs e)
         {
             // Insert an alert construct at cursor position in description field.
             string alertName = ((Button)sender).Name.Replace("Btn", "").ToUpper();
@@ -394,6 +394,28 @@ namespace Swagger
             }
 
             try { TxtDescription.CaretIndex = caretIndex + alertText.Length; }
+            catch { }
+
+            TxtDescription.Focus();
+        }
+
+        private void BtnInsertTable_Click(object sender, RoutedEventArgs e)
+        {
+            // Insert a table at cursor position in description field.
+            string tableText = $"| Header A | Header B |\n|-|-|\n| A1 | B1 |\n| A2 | B2 |";
+            int caretIndex = TxtDescription.CaretIndex;
+
+            if (DescriptionText.IsEmpty())
+            {
+                TxtDescription.Text = tableText;
+                TxtDescription.Foreground = Brushes.Black;
+            }
+            else
+            {
+                TxtDescription.Text = TxtDescription.Text.Insert(TxtDescription.CaretIndex, tableText);
+            }
+
+            try { TxtDescription.CaretIndex = caretIndex + tableText.Length; }
             catch { }
 
             TxtDescription.Focus();

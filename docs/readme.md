@@ -13,7 +13,7 @@ An open source toolkit for editing JSON swagger files.
 - Applies a consistent JSON document format.
 - Uses the Microsoft [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-overview) library.
 - Optionally, extract the summary/description in JSON format without saving to a swagger file.
-- Supports quick insert of [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) constructs (e.g. Notes, Tips).
+- Supports quick insert of Markdown or [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) constructs (e.g. Notes, Tips).
 
 ## Future features
 
@@ -25,15 +25,15 @@ An open source toolkit for editing JSON swagger files.
 
 1. To get started, drag and drop a JSON swagger file onto the path textbox. You can test the app using this [sample](./resources/samples/sample-swagger.json) swagger file.
 
-    ![Screenshot showing the swagger file drop area.](./resources/screenshots/screenshot-1.png)
+   ![Screenshot showing the swagger file drop area.](./resources/screenshots/screenshot-1.png)
 
 2. Choose from the **Select an API tag** dropdown list. The dropdown contains all [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/) from the swagger file.
 
 3. Choose from the **Select an API operation** dropdown list. The dropdown contains all [operationIds](https://swagger.io/docs/specification/paths-and-operations/) from the swagger file that are relevant to the selected [tag](https://swagger.io/docs/specification/grouping-operations-with-tags/).
 
-4. Edit the summary and/or description. You can use the snippet buttons (e.g. **Note**) to add a [Docs Markdown](https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-markdown) construct at the current cursor position (only applies to the description textbox). 
+4. Edit the summary and/or description. You can use the snippet buttons (e.g. **Table**) to add a construct at the current cursor position (only applies to the description textbox).
 
-    ![Screenshot showing the summary and description text entry for a REST API path.](./resources/screenshots/screenshot-2.png)
+   ![Screenshot showing the summary and description text entry for a REST API path.](./resources/screenshots/screenshot-2.png)
 
 5. Optionally, select one of the **Get JSON** buttons to convert summary/description content to JSON, and save it in your system clipboard. This option doesn't save changes to the swagger file.
 
