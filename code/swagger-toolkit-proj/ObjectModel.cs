@@ -42,10 +42,29 @@ namespace Swagger
                 };
                 string jsonStr = JsonNode.ToJsonString(serializerOptions);
                 await File.WriteAllTextAsync(FilePath, jsonStr);
+
+                DoubleIndentation(FilePath);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, MainWindow.s_appDisplayName);
+            }
+
+            // Change 2-space indentation to 4-space.
+            static void DoubleIndentation(string filePath)
+            {
+                List<string> fixedLines = new();
+
+                var lines = File.ReadAllLines(filePath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var indentSpaceCount = line.Length - line.TrimStart().Length;
+                    line = "".PadLeft(indentSpaceCount, ' ') + line;
+                    fixedLines.Add(line);
+                }
+
+                File.WriteAllLines(filePath, fixedLines);
             }
         }
     }
