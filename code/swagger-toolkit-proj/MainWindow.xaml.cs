@@ -471,7 +471,7 @@ namespace Swagger
 
             // Get object model summary and description.
             string summary = GetSummary(apiTag, apiOperation);
-            string description = GetDescription(apiTag, apiOperation);
+            string description = GetDescription(apiTag, apiOperation).Replace("\r", "");
 
             // Check whether any changes have been made.
             if (string.Equals(UiSummaryToRaw(SummaryText), summary) && string.Equals(UiDescriptionToRaw(DescriptionText), description))
@@ -494,7 +494,7 @@ namespace Swagger
             // Save summary and description to object model.
             HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation);
             httpMethod.Summary = UiSummaryToRaw(SummaryText);
-            httpMethod.Description = UiDescriptionToRaw(DescriptionText);
+            httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
 
             // Write to disc.
             await _objectModel.SaveAsync();
@@ -511,7 +511,7 @@ namespace Swagger
                 MessageBox.Show("No summary to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n"); ;
+            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n");
             Clipboard.SetText($"\"summary\": \"{summary}\"");
 
             MessageBox.Show("Copied JSON summary to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -554,7 +554,8 @@ namespace Swagger
             var preSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n" : "";
             var postSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n<br><br>" : "";
 
-            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
+            //return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
+            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' });
         }
 
         #endregion
