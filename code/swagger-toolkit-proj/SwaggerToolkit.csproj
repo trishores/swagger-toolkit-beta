@@ -9,7 +9,7 @@
     <AssemblyName>SwaggerToolkit</AssemblyName>
     <RootNamespace>Swagger</RootNamespace>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
     <Product>Swagger toolkit beta</Product>
   </PropertyGroup>
 

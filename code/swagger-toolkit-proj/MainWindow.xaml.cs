@@ -24,6 +24,8 @@ namespace Swagger
         private static readonly string s_appVersion;
         private ObjectModel _objectModel;
         private static DragDropEffects _dragDropEffects = DragDropEffects.None;
+        private string _previousApiTag;
+        private string _previousApiOperation;
         private static readonly string _cmbApiTagText = "Select an API tag";
         private static readonly string _cmbApiOperationText = "Select an API operation";
         private static readonly string _hintSummary = "Path summary";
@@ -304,11 +306,15 @@ namespace Swagger
                 return;
             }
 
+            // Unless undoing page edits, check whether to save previous summary & description:
+            if (sender != null) CheckWhetherToSavePreviousPage();
+
             // Lock control.
             CmbApiTags.IsEditable = false;
 
             // Populate API names.
             string apiTag = CmbApiTags.SelectedItem.ToString();
+            _previousApiTag = apiTag;
             string[] apiOperations = GetApiOperationsForTag(apiTag);
 
             CmbApiOperations.SelectionChanged -= CmbApiOperations_SelectionChanged;
@@ -337,11 +343,15 @@ namespace Swagger
                 return;
             }
 
+            // Unless undoing page edits, check whether to save previous summary & description:
+            if (sender != null) CheckWhetherToSavePreviousPage();
+
             // Lock control.
             CmbApiOperations.IsEditable = false;
 
             string apiTag = CmbApiTags.SelectedItem.ToString();
             string apiOperation = CmbApiOperations.SelectedItem.ToString();
+            _previousApiOperation = apiOperation;
 
             // Populate summary.
             string summary = GetSummary(apiTag, apiOperation);
@@ -423,7 +433,7 @@ namespace Swagger
 
         #endregion
 
-        #region Discard page edits
+        #region Undo page edits
 
         private void BtnDiscardPageEdits_Click(object sender, RoutedEventArgs e)
         {
@@ -458,6 +468,41 @@ namespace Swagger
 
         #endregion
 
+        #region Check whether to save previous page
+
+        private async void CheckWhetherToSavePreviousPage()
+        {
+            if (_previousApiTag.IsEmpty() || _previousApiOperation.IsEmpty()) return;
+
+            // Get object model summary and description.
+            string prevSummary = GetSummary(_previousApiTag, _previousApiOperation);
+            string prevDescription = GetDescription(_previousApiTag, _previousApiOperation).Replace("\r", "");
+
+            // Check whether any changes have been made.
+            if (string.Equals(UiSummaryToRaw(SummaryText), prevSummary) && string.Equals(UiDescriptionToRaw(DescriptionText), prevDescription))
+            {
+                return;
+            }
+            else
+            {
+                MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                if (dr != MessageBoxResult.OK)
+                {
+                    return;
+                }
+            }
+
+            // Save summary and description to object model.
+            HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, _previousApiTag)) && x.ApiOperation == _previousApiOperation);
+            httpMethod.Summary = UiSummaryToRaw(SummaryText);
+            httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
+
+            // Write to disc.
+            await _objectModel.SaveAsync();
+        }
+
+        #endregion
+
         #region Save page
 
         private async void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -471,7 +516,7 @@ namespace Swagger
 
             // Get object model summary and description.
             string summary = GetSummary(apiTag, apiOperation);
-            string description = GetDescription(apiTag, apiOperation);
+            string description = GetDescription(apiTag, apiOperation).Replace("\r", "");
 
             // Check whether any changes have been made.
             if (string.Equals(UiSummaryToRaw(SummaryText), summary) && string.Equals(UiDescriptionToRaw(DescriptionText), description))
@@ -482,22 +527,16 @@ namespace Swagger
                     return;
                 }
             }
-            else
-            {
-                MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
-                if (dr != MessageBoxResult.OK)
-                {
-                    return;
-                }
-            }
 
             // Save summary and description to object model.
             HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation);
             httpMethod.Summary = UiSummaryToRaw(SummaryText);
-            httpMethod.Description = UiDescriptionToRaw(DescriptionText);
+            httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
 
             // Write to disc.
             await _objectModel.SaveAsync();
+
+            MessageBox.Show("Page saved.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion
@@ -511,7 +550,7 @@ namespace Swagger
                 MessageBox.Show("No summary to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n"); ;
+            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n");
             Clipboard.SetText($"\"summary\": \"{summary}\"");
 
             MessageBox.Show("Copied JSON summary to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -551,10 +590,9 @@ namespace Swagger
 
         private string UiDescriptionToRaw(string uiDescription)
         {
-            var preSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n" : "";
-            var postSpacing = string.Equals(_objectModel?.Info?.Title, "Power BI Client") && uiDescription.IsNotEmpty() ? "\n<br><br>" : "";
+            var preSpacing = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? "\n" : "";
 
-            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
+            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' });
         }
 
         #endregion

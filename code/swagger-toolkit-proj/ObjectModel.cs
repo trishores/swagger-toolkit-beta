@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -16,6 +15,9 @@ namespace Swagger
         // Swagger file path.
         internal string FilePath;
 
+        // Specific swagger file test.
+        internal bool IsPowerBiClient;
+
         internal ObjectModel(JsonNode jsonNode)
         {
             JsonNode = jsonNode;
@@ -23,6 +25,10 @@ namespace Swagger
             // Parse JsonNode.
             Info = new Info(jsonNode["info"]);
             ApiPaths = jsonNode["paths"].AsObject().Select(x => new ApiPath(x.Key, x.Value)).ToArray();
+            ApiDefinitions = jsonNode["definitions"].AsObject().Select(x => new ApiDefinition(x.Key, x.Value)).ToArray();
+
+            // Specific swagger file test.
+            IsPowerBiClient = string.Equals(Info?.Title, "Power BI Client");
         }
 
         internal JsonNode JsonNode { get; set; }
@@ -30,6 +36,8 @@ namespace Swagger
         internal Info Info { get; set; }
 
         internal ApiPath[] ApiPaths { get; set; }
+
+        internal ApiDefinition[] ApiDefinitions { get; set; }
 
         internal async Task SaveAsync()
         {
@@ -42,10 +50,32 @@ namespace Swagger
                 };
                 string jsonStr = JsonNode.ToJsonString(serializerOptions);
                 await File.WriteAllTextAsync(FilePath, jsonStr);
+
+                if (IsPowerBiClient)
+                {
+                    DoubleIndent(FilePath);
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, MainWindow.s_appDisplayName);
+            }
+
+            // Change default 2-space indentation to 4-space.
+            static void DoubleIndent(string filePath)
+            {
+                List<string> fixedLines = new();
+
+                var lines = File.ReadAllLines(filePath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var indentSpaceCount = line.Length - line.TrimStart().Length;
+                    line = "".PadLeft(indentSpaceCount, ' ') + line;
+                    fixedLines.Add(line);
+                }
+
+                File.WriteAllLines(filePath, fixedLines);
             }
         }
     }
@@ -104,7 +134,7 @@ namespace Swagger
         internal JsonNode JsonNode { get; set; }
 
         internal string[] Tags { get; set; }
-        
+
         internal string Summary
         {
             get => summary ?? string.Empty;
@@ -142,5 +172,96 @@ namespace Swagger
                 return OperationId?.Replace("_", " - ");
             }
         }
+
+        internal string WebUrl
+        {
+            get
+            {
+                var apiType = Tags[0];
+                var opId1 = OperationId[..OperationId.IndexOf("_")];
+                var opId2 = OperationId[(OperationId.IndexOf("_") + 1)..];
+                var opId = apiType.Equals(opId1) ? opId2 : opId1 + opId2;
+                var urlSegment1 = Hyphenate(apiType);
+                var urlSegment2 = Hyphenate(opId);
+                return $"https://docs.microsoft.com/en-us/rest/api/power-bi/{urlSegment1}/{urlSegment2}";
+
+                static string Hyphenate(string text)
+                {
+                    text = text.Replace("PowerBI", "PowerBi").Replace("ID", "Id");
+                    List<char> urlSegmentCharList = new();
+                    foreach (var ch in text)
+                    {
+                        if (ch.ToString().Equals(ch.ToString().ToUpper()))
+                        {
+                            urlSegmentCharList.Add('-');
+                        }
+                        urlSegmentCharList.Add(ch);
+                    }
+                    var urlSegment = string.Join("", urlSegmentCharList).Trim('-').ToLower();
+                    return urlSegment;
+                }
+            }
+        }
+    }
+
+    internal class ApiDefinition
+    {
+        internal ApiDefinition(string jsonKey, JsonNode jsonNode)
+        {
+            JsonKey = jsonKey;
+            JsonNode = jsonNode;
+
+            // Parse JsonNode.
+            Required = JsonNode["required"]?.AsArray()?.Select(x => x?.GetValue<string>())?.ToArray();
+            Description = JsonNode["description"]?.GetValue<string>();
+            Properties = JsonNode["properties"]?.AsObject()?.Select(x => new Property(x.Key, x.Value))?.ToArray();
+        }
+
+        internal string JsonKey { get; set; }
+        internal JsonNode JsonNode { get; set; }
+
+        internal string[] Required { get; set; }
+        internal string Description { get; set; }
+        internal Property[] Properties { get; set; }
+    }
+
+    internal class Property
+    {
+        private string description;
+
+        internal Property(string jsonKey, JsonNode jsonNode)
+        {
+            JsonKey = jsonKey;
+            JsonNode = jsonNode;
+
+            // Parse JsonNode.
+            Type = JsonNode["type"]?.GetValue<string>();
+            Format = JsonNode["format"]?.GetValue<string>();
+            Description = JsonNode["description"]?.GetValue<string>();
+
+            // Handle missing description.
+            if (Description == null)
+            {
+                JsonNode.AsObject().Remove("description");
+            }
+        }
+
+        internal string JsonKey { get; set; }
+
+        internal JsonNode JsonNode { get; set; }
+
+        internal string Description
+        {
+            get => description;
+            set
+            {
+                description = value;
+                JsonNode["description"] = value;
+            }
+        }
+
+        internal string Type { get; set; }
+
+        internal string Format { get; set; }
     }
 }
