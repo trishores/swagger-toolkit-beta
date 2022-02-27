@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,6 +24,7 @@ namespace Swagger
             // Parse JsonNode.
             Info = new Info(jsonNode["info"]);
             ApiPaths = jsonNode["paths"].AsObject().Select(x => new ApiPath(x.Key, x.Value)).ToArray();
+            ApiDefinitions = jsonNode["definitions"].AsObject().Select(x => new ApiDefinition(x.Key, x.Value)).ToArray();
         }
 
         internal JsonNode JsonNode { get; set; }
@@ -31,6 +33,8 @@ namespace Swagger
 
         internal ApiPath[] ApiPaths { get; set; }
 
+        internal ApiDefinition[] ApiDefinitions { get; set; }
+
         internal async Task SaveAsync()
         {
             try
@@ -38,7 +42,8 @@ namespace Swagger
                 JsonSerializerOptions serializerOptions = new()
                 {
                     Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                    WriteIndented = true
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
                 };
                 string jsonStr = JsonNode.ToJsonString(serializerOptions);
                 await File.WriteAllTextAsync(FilePath, jsonStr);
@@ -123,7 +128,7 @@ namespace Swagger
         internal JsonNode JsonNode { get; set; }
 
         internal string[] Tags { get; set; }
-        
+
         internal string Summary
         {
             get => summary ?? string.Empty;
@@ -161,5 +166,65 @@ namespace Swagger
                 return OperationId?.Replace("_", " - ");
             }
         }
+    }
+
+    internal class ApiDefinition
+    {
+        internal ApiDefinition(string jsonKey, JsonNode jsonNode)
+        {
+            JsonKey = jsonKey;
+            JsonNode = jsonNode;
+
+            // Parse JsonNode.
+            Required = JsonNode["required"]?.AsArray()?.Select(x => x?.GetValue<string>())?.ToArray();
+            Description = JsonNode["description"]?.GetValue<string>();
+            Properties = JsonNode["properties"]?.AsObject()?.Select(x => new Property(x.Key, x.Value))?.ToArray();
+        }
+
+        internal string JsonKey { get; set; }
+        internal JsonNode JsonNode { get; set; }
+
+        internal string[] Required { get; set; }
+        internal string Description { get; set; }
+        internal Property[] Properties { get; set; }
+    }
+
+    internal class Property
+    {
+        private string description;
+
+        internal Property(string jsonKey, JsonNode jsonNode)
+        {
+            JsonKey = jsonKey;
+            JsonNode = jsonNode;
+
+            // Parse JsonNode.
+            Description = JsonNode["description"]?.GetValue<string>();
+            Type = JsonNode["type"]?.GetValue<string>();
+            Format = JsonNode["format"]?.GetValue<string>();
+
+            if (Description == null)
+            {
+                JsonNode.AsObject().Remove("description");
+            }
+        }
+
+        internal string JsonKey { get; set; }
+
+        internal JsonNode JsonNode { get; set; }
+
+        internal string Description
+        {
+            get => description;
+            set
+            {
+                description = value;
+                JsonNode["description"] = value;
+            }
+        }
+
+        internal string Type { get; set; }
+
+        internal string Format { get; set; }
     }
 }
