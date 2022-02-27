@@ -92,7 +92,8 @@ namespace Swagger
 
             if (true)
             {
-                List<string> apiList = new();
+                List<string> apiNameList = new();
+                List<string> apiUrlList = new();
 
                 foreach (var apiPath in _objectModel.ApiPaths)
                 {
@@ -102,15 +103,16 @@ namespace Swagger
                         var opId1 = httpMethod.OperationId.Substring(0, httpMethod.OperationId.IndexOf("_"));
                         var opId2 = httpMethod.OperationId.Substring(httpMethod.OperationId.IndexOf("_") + 1);
                         var opId = apiType.Equals(opId1) ? opId2 : opId1 + opId2;
-                        var urlSegment1 = Segmentize(apiType);
-                        var urlSegment2 = Segmentize(opId);
-                        var apiOperation = httpMethod.ApiOperation;
-                        apiList.Add(apiOperation);
+                        var urlSegment1 = Hyphenate(apiType);
+                        var urlSegment2 = Hyphenate(opId);
+                        apiNameList.Add(httpMethod.ApiOperation);
+                        apiUrlList.Add($"https://docs.microsoft.com/en-us/rest/api/power-bi/{urlSegment1}/{urlSegment2}");
                     }
                 }
 
-                string Segmentize(string text)
+                string Hyphenate(string text)
                 {
+                    text = text.Replace("PowerBI", "PowerBi").Replace("ID", "Id");
                     List<char> urlSegmentCharList = new();
                     foreach (var ch in text)
                     {
@@ -124,7 +126,8 @@ namespace Swagger
                     return urlSegment;
                 }
 
-                var str = string.Join("\r\n", lineList.OrderBy(x => x));
+                var nameList = string.Join("\r\n", apiNameList.OrderBy(x => x));
+                var urlList = string.Join("\r\n", apiUrlList.OrderBy(x => x));
             }
 
             RunAnimation();
