@@ -90,6 +90,43 @@ namespace Swagger
             // Store file path.
             _objectModel.FilePath = filePath;
 
+            if (true)
+            {
+                List<string> apiList = new();
+
+                foreach (var apiPath in _objectModel.ApiPaths)
+                {
+                    foreach (var httpMethod in apiPath.HttpMethods)
+                    {
+                        var apiType = httpMethod.Tags[0];
+                        var opId1 = httpMethod.OperationId.Substring(0, httpMethod.OperationId.IndexOf("_"));
+                        var opId2 = httpMethod.OperationId.Substring(httpMethod.OperationId.IndexOf("_") + 1);
+                        var opId = apiType.Equals(opId1) ? opId2 : opId1 + opId2;
+                        var urlSegment1 = Segmentize(apiType);
+                        var urlSegment2 = Segmentize(opId);
+                        var apiOperation = httpMethod.ApiOperation;
+                        apiList.Add(apiOperation);
+                    }
+                }
+
+                string Segmentize(string text)
+                {
+                    List<char> urlSegmentCharList = new();
+                    foreach (var ch in text)
+                    {
+                        if (ch.ToString().Equals(ch.ToString().ToUpper()))
+                        {
+                            urlSegmentCharList.Add('-');
+                        }
+                        urlSegmentCharList.Add(ch);
+                    }
+                    var urlSegment = string.Join("", urlSegmentCharList).Trim('-').ToLower();
+                    return urlSegment;
+                }
+
+                var str = string.Join("\r\n", lineList.OrderBy(x => x));
+            }
+
             RunAnimation();
         }
 
