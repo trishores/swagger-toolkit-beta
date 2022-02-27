@@ -341,6 +341,8 @@ namespace Swagger
                 return;
             }
 
+            //CheckWhetherToSaveCurrentPage(); // save to wrong page
+
             // Lock control.
             CmbApiTags.IsEditable = false;
 
@@ -373,6 +375,8 @@ namespace Swagger
                 TxtDescription.Clear();
                 return;
             }
+
+            //CheckWhetherToSaveCurrentPage(); // save to wrong page
 
             // Lock control.
             CmbApiOperations.IsEditable = false;
@@ -494,6 +498,48 @@ namespace Swagger
         }
 
         #endregion
+
+        #region Check save page
+
+        private async void CheckWhetherToSaveCurrentPage()
+        {
+            if (CmbApiTags.SelectedItem == null || CmbApiTags.SelectedIndex == 0) return;
+            if (CmbApiOperations.SelectedItem == null || CmbApiOperations.SelectedIndex == 0) return;
+            if (_objectModel == null) return;
+            if (SummaryText.IsEmpty() || DescriptionText.IsEmpty()) return;
+
+            string apiTag = CmbApiTags.SelectedItem.ToString();
+            string apiOperation = CmbApiOperations.SelectedItem.ToString();
+
+            // Get object model summary and description.
+            string summary = GetSummary(apiTag, apiOperation);
+            string description = GetDescription(apiTag, apiOperation).Replace("\r", "");
+
+            // Check whether any changes have been made.
+            if (string.Equals(UiSummaryToRaw(SummaryText), summary) && string.Equals(UiDescriptionToRaw(DescriptionText), description))
+            {
+                return;
+            }
+            else
+            {
+                MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                if (dr != MessageBoxResult.OK)
+                {
+                    return;
+                }
+            }
+
+            // Save summary and description to object model.
+            HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation);
+            httpMethod.Summary = UiSummaryToRaw(SummaryText);
+            httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
+
+            // Write to disc.
+            await _objectModel.SaveAsync();
+        }
+
+        #endregion
+
 
         #region Save page
 
