@@ -400,7 +400,7 @@ namespace Swagger
 
         internal static bool IsSubDir(this string subDir, string parentDir)
         {
-            return ((subDir.ToLower().TrimEnd('\\') + '\\').StartsWith(parentDir.ToLower().TrimEnd('\\') + '\\'));
+            return (subDir.ToLower().TrimEnd('\\') + '\\').StartsWith(parentDir.ToLower().TrimEnd('\\') + '\\');
         }
 
         internal static void AddIfNotExist(this List<string> strArray, string str)

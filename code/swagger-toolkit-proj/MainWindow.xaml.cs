@@ -314,7 +314,6 @@ namespace Swagger
 
             // Populate API names.
             string apiTag = CmbApiTags.SelectedItem.ToString();
-            _previousApiTag = apiTag;
             string[] apiOperations = GetApiOperationsForTag(apiTag);
 
             CmbApiOperations.SelectionChanged -= CmbApiOperations_SelectionChanged;
@@ -351,6 +350,7 @@ namespace Swagger
 
             string apiTag = CmbApiTags.SelectedItem.ToString();
             string apiOperation = CmbApiOperations.SelectedItem.ToString();
+            _previousApiTag = apiTag;
             _previousApiOperation = apiOperation;
 
             // Populate summary.
@@ -378,7 +378,7 @@ namespace Swagger
 
         private string GetDescription(string apiTag, string apiOperation)
         {
-            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && x.ApiOperation == apiOperation).Select(y => y.Description).SingleOrDefault();
+            string description = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).Where(x => x.ApiTag.Any(y => string.Equals(y, apiTag)) && string.Equals(x.ApiOperation, apiOperation)).Select(y => y.Description).SingleOrDefault();
             return description;
         }
 
@@ -474,31 +474,39 @@ namespace Swagger
         {
             if (_previousApiTag.IsEmpty() || _previousApiOperation.IsEmpty()) return;
 
-            // Get object model summary and description.
-            string prevSummary = GetSummary(_previousApiTag, _previousApiOperation);
-            string prevDescription = GetDescription(_previousApiTag, _previousApiOperation).Replace("\r", "");
+            try
+            {
+                // Get object model summary and description.
+                string prevSummary = GetSummary(_previousApiTag, _previousApiOperation);
+                string prevDescription = GetDescription(_previousApiTag, _previousApiOperation)?.Replace("\r", "");
 
-            // Check whether any changes have been made.
-            if (string.Equals(UiSummaryToRaw(SummaryText), prevSummary) && string.Equals(UiDescriptionToRaw(DescriptionText), prevDescription))
-            {
-                return;
-            }
-            else
-            {
-                MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
-                if (dr != MessageBoxResult.OK)
+                // Check whether any changes have been made.
+                if (string.Equals(UiSummaryToRaw(SummaryText), prevSummary) && string.Equals(UiDescriptionToRaw(DescriptionText), prevDescription))
                 {
                     return;
                 }
+                else
+                {
+                    MessageBoxResult dr = MessageBox.Show("Save your changes to this page?", s_appDisplayName, MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                    if (dr != MessageBoxResult.OK)
+                    {
+                        return;
+                    }
+                }
+
+                // Save summary and description to object model.
+                HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, _previousApiTag)) && x.ApiOperation == _previousApiOperation);
+                httpMethod.Summary = UiSummaryToRaw(SummaryText);
+                httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
+
+                // Write to disc.
+                await _objectModel.SaveAsync();
             }
-
-            // Save summary and description to object model.
-            HttpMethod httpMethod = _objectModel.ApiPaths.SelectMany(x => x.HttpMethods).SingleOrDefault(x => x.ApiTag.Any(y => string.Equals(y, _previousApiTag)) && x.ApiOperation == _previousApiOperation);
-            httpMethod.Summary = UiSummaryToRaw(SummaryText);
-            httpMethod.Description = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
-
-            // Write to disc.
-            await _objectModel.SaveAsync();
+            finally
+            {
+                _previousApiTag = null;
+                _previousApiOperation = null;
+            }
         }
 
         #endregion
@@ -507,9 +515,13 @@ namespace Swagger
 
         private async void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (CmbApiTags.SelectedItem == null || CmbApiTags.SelectedIndex == 0) return;
-            if (CmbApiOperations.SelectedItem == null || CmbApiOperations.SelectedIndex == 0) return;
-            if (_objectModel == null) return;
+            if (CmbApiTags.SelectedItem == null || CmbApiTags.SelectedIndex == 0 ||
+                CmbApiOperations.SelectedItem == null || CmbApiOperations.SelectedIndex == 0 ||
+                _objectModel == null)
+            {
+                MessageBox.Show("Nothing to save.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
             string apiTag = CmbApiTags.SelectedItem.ToString();
             string apiOperation = CmbApiOperations.SelectedItem.ToString();
@@ -521,7 +533,7 @@ namespace Swagger
             // Check whether any changes have been made.
             if (string.Equals(UiSummaryToRaw(SummaryText), summary) && string.Equals(UiDescriptionToRaw(DescriptionText), description))
             {
-                MessageBoxResult dr = MessageBox.Show("No changes found on page. Save anyway?", s_appDisplayName, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                MessageBoxResult dr = MessageBox.Show("No changes found on page, but saving will fix any inconsistent formatting in swagger.json. Save?", s_appDisplayName, MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (dr != MessageBoxResult.Yes)
                 {
                     return;
@@ -536,7 +548,7 @@ namespace Swagger
             // Write to disc.
             await _objectModel.SaveAsync();
 
-            MessageBox.Show("Page saved.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Page saved and any inconsistent formatting in swagger.json fixed.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion
