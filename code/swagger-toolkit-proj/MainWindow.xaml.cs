@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows;
@@ -562,8 +564,17 @@ namespace Swagger
                 MessageBox.Show("No summary to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            string summary = UiSummaryToRaw(SummaryText).Replace("\n", @"\n");
-            Clipboard.SetText($"\"summary\": \"{summary}\"");
+
+            // Convert to JSON with escaping.
+            JsonNode jsonNode = UiSummaryToRaw(SummaryText);
+            JsonSerializerOptions serializerOptions = new()
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            };
+            string summary = jsonNode.ToJsonString(serializerOptions);
+
+            Clipboard.SetText($"\"summary\": {summary}");
 
             MessageBox.Show("Copied JSON summary to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -575,8 +586,17 @@ namespace Swagger
                 MessageBox.Show("No description to convert.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            string description = UiDescriptionToRaw(DescriptionText).Replace("\r", "").Replace("\n", @"\n");
-            Clipboard.SetText($"\"description\": \"{description}\"");
+
+            // Convert to JSON with escaping.
+            JsonNode jsonNode = UiDescriptionToRaw(DescriptionText).Replace("\r", "");
+            JsonSerializerOptions serializerOptions = new()
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            };
+            string description = jsonNode.ToJsonString(serializerOptions);
+
+            Clipboard.SetText($"\"description\": {description}");
 
             MessageBox.Show("Copied JSON description to clipboard.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
