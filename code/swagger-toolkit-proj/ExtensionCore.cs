@@ -146,6 +146,30 @@ namespace Swagger
             return str[startPos..endPos];
         }
 
+        public static string TrimEnd(this string str, string str2)
+        {
+            return str.TrimEnd(new[] { str2 });
+        }
+
+        public static string TrimEnd(this string str, string[] strArr)
+        {
+            string tempStr;
+
+            do
+            {
+                tempStr = str;
+                foreach (var strItem in strArr)
+                {
+                    if (!str.EndsWith(strItem)) 
+                        continue;
+                    str = str.Remove(str.LastIndexOf(strItem));
+                }
+            }
+            while (!string.Equals(str, tempStr));
+
+            return str;
+        }
+
         internal static string SeparateNonEmptyStrings(this IEnumerable<string> array, string separator)
         {
             IEnumerable<string> arr = array.Where(x => x.IsNotEmpty());

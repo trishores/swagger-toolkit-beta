@@ -550,7 +550,7 @@ namespace Swagger
             // Write to disc.
             await _objectModel.SaveAsync();
 
-            MessageBox.Show("Page saved and any inconsistent formatting in swagger.json fixed.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Page saved and any inconsistent formatting in swagger.json is fixed.", s_appDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion
@@ -615,16 +615,27 @@ namespace Swagger
             return uiSummary.Trim(new[] { ' ', '\r', '\n' }).Replace("\n", "");
         }
 
-        private static string RawDescriptionToUi(string rawDescription)
+        private string RawDescriptionToUi(string rawDescription)
         {
-            return rawDescription.TrimStart(new[] { ' ', '\r', '\n' }).TrimEnd(new[] { ' ', '\r', '\n', '#' });
+            // Remove formatting applicable to the Power BI REST API swagger file.
+            rawDescription = _objectModel.IsPowerBiClient && rawDescription.IsNotEmpty() ? rawDescription.TrimEnd(new[] { " ", "\r", "\n", "<br>", "</br>" }) : rawDescription;
+
+            string uiDescription = rawDescription.TrimStart(new[] { ' ', '\r', '\n' }).TrimEnd(new[] { ' ', '\r', '\n', '#' });
+            uiDescription = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? uiDescription.TrimEnd("\n<br><br>").TrimEnd("<br><br>").TrimEnd("<br><br>") : uiDescription;
+            return uiDescription;
         }
 
         private string UiDescriptionToRaw(string uiDescription)
         {
-            var preSpacing = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? "\n" : "";
+            // Remove formatting applicable to the Power BI REST API swagger file.
+            uiDescription = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? uiDescription.TrimEnd(new[] { " ", "\r", "\n", "<br>", "</br>" }) : uiDescription;
 
-            return preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' });
+            // Apply a special formatting to the Power BI REST API swagger file.
+            string preSpacing = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? "\n" : "";
+            string postSpacing = _objectModel.IsPowerBiClient && uiDescription.IsNotEmpty() ? "\n<br><br>" : "";
+
+            string rawDescription = preSpacing + uiDescription.Trim(new[] { ' ', '\r', '\n' }) + postSpacing;
+            return rawDescription;
         }
 
         #endregion
