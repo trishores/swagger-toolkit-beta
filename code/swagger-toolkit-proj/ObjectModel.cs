@@ -66,11 +66,11 @@ namespace Swagger
             {
                 List<string> fixedLines = new();
 
-                var lines = File.ReadAllLines(filePath);
+                string[] lines = File.ReadAllLines(filePath);
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    var line = lines[i];
-                    var indentSpaceCount = line.Length - line.TrimStart().Length;
+                    string line = lines[i];
+                    int indentSpaceCount = line.Length - line.TrimStart().Length;
                     line = "".PadLeft(indentSpaceCount, ' ') + line;
                     fixedLines.Add(line);
                 }
@@ -177,19 +177,19 @@ namespace Swagger
         {
             get
             {
-                var apiType = Tags[0];
-                var opId1 = OperationId[..OperationId.IndexOf("_")];
-                var opId2 = OperationId[(OperationId.IndexOf("_") + 1)..];
-                var opId = apiType.Equals(opId1) ? opId2 : opId1 + opId2;
-                var urlSegment1 = Hyphenate(apiType);
-                var urlSegment2 = Hyphenate(opId);
+                string apiType = Tags[0];
+                string opId1 = OperationId[..OperationId.IndexOf("_")];
+                string opId2 = OperationId[(OperationId.IndexOf("_") + 1)..];
+                string opId = apiType.Equals(opId1) ? opId2 : opId1 + opId2;
+                string urlSegment1 = Hyphenate(apiType);
+                string urlSegment2 = Hyphenate(opId);
                 return $"https://docs.microsoft.com/en-us/rest/api/power-bi/{urlSegment1}/{urlSegment2}";
 
                 static string Hyphenate(string text)
                 {
                     text = text.Replace("PowerBI", "PowerBi").Replace("ID", "Id");
                     List<char> urlSegmentCharList = new();
-                    foreach (var ch in text)
+                    foreach (char ch in text)
                     {
                         if (ch.ToString().Equals(ch.ToString().ToUpper()))
                         {
@@ -197,7 +197,7 @@ namespace Swagger
                         }
                         urlSegmentCharList.Add(ch);
                     }
-                    var urlSegment = string.Join("", urlSegmentCharList).Trim('-').ToLower();
+                    string urlSegment = string.Join("", urlSegmentCharList).Trim('-').ToLower();
                     return urlSegment;
                 }
             }

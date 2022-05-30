@@ -24,7 +24,7 @@ namespace ConsoleApp
 
             XNamespace xmlns = "http://schemas.microsoft.com/appx/manifest/foundation/windows10";
             XDocument xdocTrg = XDocument.Load(packagerProjFile);
-            var test = xdocTrg.Root.Descendants(xmlns + "Identity").Single();
+            XElement test = xdocTrg.Root.Descendants(xmlns + "Identity").Single();
             xdocTrg.Root.Descendants(xmlns + "Identity").Single().Attribute("Version").Value = version + ".0";
             xdocTrg.Save(packagerProjFile);
 
